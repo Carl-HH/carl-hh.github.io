@@ -79,17 +79,20 @@
 
 
 
-<meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta name="description" content="Java线程池 new Thread 弊端  每次新建对象，性能差 线程缺乏统一管理，可能无限制的新建线程，相互竞争，有可能占用过多系统资源导致死机或者OOM 缺少更多的功能，如更多执行，定期执行，线程中断    线程池的好处  重用存在的线程，减少对象的创建、销亡的开销，性能佳 可以有效的控制最大并发线程数，提高系统资源利用率，同时可以避免过多资源竞争，避免阻塞 提供定时执行、定期执行、单线程、">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="https://carl-hh.github.io/blog/2018/09/23/hello-world/index.html">
+<meta property="og:title" content="Blog">
+<meta property="og:url" content="https://carl-hh.github.io/blog/2018/09/26/ThreadPool/index.html">
 <meta property="og:site_name" content="Blog">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta property="og:description" content="Java线程池 new Thread 弊端  每次新建对象，性能差 线程缺乏统一管理，可能无限制的新建线程，相互竞争，有可能占用过多系统资源导致死机或者OOM 缺少更多的功能，如更多执行，定期执行，线程中断    线程池的好处  重用存在的线程，减少对象的创建、销亡的开销，性能佳 可以有效的控制最大并发线程数，提高系统资源利用率，同时可以避免过多资源竞争，避免阻塞 提供定时执行、定期执行、单线程、">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-09-23T07:28:31.607Z">
+<meta property="og:image" content="https://carl-hh.github.io/blog/2018/09/26/ThreadPool/线程池状态.jpg">
+<meta property="og:image" content="https://carl-hh.github.io/blog/2018/09/26/ThreadPool/线程池类图.jpg">
+<meta property="og:updated_time" content="2018-09-26T12:14:08.659Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hello World">
-<meta name="twitter:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta name="twitter:title" content="Blog">
+<meta name="twitter:description" content="Java线程池 new Thread 弊端  每次新建对象，性能差 线程缺乏统一管理，可能无限制的新建线程，相互竞争，有可能占用过多系统资源导致死机或者OOM 缺少更多的功能，如更多执行，定期执行，线程中断    线程池的好处  重用存在的线程，减少对象的创建、销亡的开销，性能佳 可以有效的控制最大并发线程数，提高系统资源利用率，同时可以避免过多资源竞争，避免阻塞 提供定时执行、定期执行、单线程、">
+<meta name="twitter:image" content="https://carl-hh.github.io/blog/2018/09/26/ThreadPool/线程池状态.jpg">
 
 
 
@@ -119,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="https://carl-hh.github.io/blog/2018/09/23/hello-world/"/>
+  <link rel="canonical" href="https://carl-hh.github.io/blog/2018/09/26/ThreadPool/"/>
 
 
 
 
 
-  <title>Hello World | Blog</title>
+  <title> | Blog</title>
   
 
 
@@ -264,7 +267,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://carl-hh.github.io/blog/blog/2018/09/23/hello-world/">
+    <link itemprop="mainEntityOfPage" href="https://carl-hh.github.io/blog/blog/2018/09/26/ThreadPool/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Hua Chen">
@@ -281,7 +284,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Hello World</h1>
+          <h1 class="post-title" itemprop="name headline"></h1>
         
 
         <div class="post-meta">
@@ -293,8 +296,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-23T15:28:31+08:00">
-                2018-09-23
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-26T20:13:55+08:00">
+                2018-09-26
               </time>
             
 
@@ -331,15 +334,61 @@
       
 
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+        <h1 id="Java线程池"><a href="#Java线程池" class="headerlink" title="Java线程池"></a>Java线程池</h1><blockquote>
+<p>new Thread 弊端</p>
+<ul>
+<li>每次新建对象，性能差</li>
+<li>线程缺乏统一管理，可能无限制的新建线程，相互竞争，有可能占用过多系统资源导致死机或者OOM</li>
+<li>缺少更多的功能，如更多执行，定期执行，线程中断</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>线程池的好处</p>
+<ul>
+<li>重用存在的线程，减少对象的创建、销亡的开销，性能佳</li>
+<li>可以有效的控制最大并发线程数，提高系统资源利用率，同时可以避免过多资源竞争，避免阻塞</li>
+<li>提供定时执行、定期执行、单线程、并发数控制等功能</li>
+</ul>
+</blockquote>
+<h2 id="TreadPoolExecutor"><a href="#TreadPoolExecutor" class="headerlink" title="TreadPoolExecutor"></a>TreadPoolExecutor</h2><blockquote>
+<p>关键参数</p>
+<ul>
+<li>corePoolSize : 核心线程数量</li>
+<li>maximumPoolSize: 线程最大线程数</li>
+<li>workQueue: 阻塞队列，存储等待执行的任务，很重要，线程池运行过程中产生重大影响</li>
+<li>keepAliveTime：线程没有任务执行时，最多保持多久时间</li>
+<li>unit: keepAliveTime 的时间单位</li>
+<li>threadFactory：线程工厂，用来创建线程</li>
+<li>RejectHandler：当拒绝处理任务时的策略</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>线程池状态：<br><img src="/blog/2018/09/26/ThreadPool/线程池状态.jpg" alt="线程池状态"></p>
+<ul>
+<li>execute():提交任务，交给线程池执行</li>
+<li>submit()：提交任务，能够返回执行结果 相当于execute+Future</li>
+<li>shutdown()：关闭线程池，等待任务都执行完</li>
+<li>shutdownNow():关闭线程池，不等待任务都执行完</li>
+<li>getTashCount():线程已经执行和未执行的任务总数</li>
+<li>getCompletedTaskCount():返回已完成线程数量</li>
+<li>getActiveCount():返回当前线程池中正在执行任务的线程数量</li>
+<li>getPoolSize():返回线程池当前线程数量</li>
+</ul>
+</blockquote>
+<h2 id="Executor框架接口"><a href="#Executor框架接口" class="headerlink" title="Executor框架接口"></a>Executor框架接口</h2><blockquote>
+<p>线程池类图<br><img src="/blog/2018/09/26/ThreadPool/线程池类图.jpg" alt="线程池类图"></p>
+<ul>
+<li>Executors.newCachedThreadPool：</li>
+<li>Executors.newFixedThreadPool:</li>
+<li>Executors.newSingleThreadExecutor:</li>
+<li>Executors.newScheduledThreadPool:</li>
+<li>Executors.newWorkStealingPool:</li>
+</ul>
+</blockquote>
+<h2 id="线程合理配置"><a href="#线程合理配置" class="headerlink" title="线程合理配置"></a>线程合理配置</h2><ul>
+<li>CPU密集型任务，就需要尽量压榨CPU，参考值可以设为NCPU + 1</li>
+<li>IO密集型任务，参考值可以设置为2*NCPU</li>
+</ul>
 
       
     </div>
@@ -364,15 +413,15 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/blog/2018/09/23/hello-world/" rel="next" title="Hello World">
+                <i class="fa fa-chevron-left"></i> Hello World
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/blog/2018/09/26/ThreadPool/" rel="prev" title="">
-                 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -486,7 +535,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-server"><span class="nav-number">1.2.</span> <span class="nav-text">Run server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.3.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java线程池"><span class="nav-number">1.</span> <span class="nav-text">Java线程池</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#TreadPoolExecutor"><span class="nav-number">1.1.</span> <span class="nav-text">TreadPoolExecutor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Executor框架接口"><span class="nav-number">1.2.</span> <span class="nav-text">Executor框架接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程合理配置"><span class="nav-number">1.3.</span> <span class="nav-text">线程合理配置</span></a></li></ol></li></ol></div>
             
 
           </div>
