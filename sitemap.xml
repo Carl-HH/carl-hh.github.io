@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://carl-hh.github.io/tags/index.html</loc>
+    
+    <lastmod>2018-09-29T15:41:59.478Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://carl-hh.github.io/categories/index.html</loc>
+    
+    <lastmod>2018-09-29T15:41:29.216Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://carl-hh.github.io/2018/09/25/volatile/</loc>
     
     <lastmod>2018-09-26T16:00:14.000Z</lastmod>
@@ -40,20 +54,6 @@
     <loc>https://carl-hh.github.io/2018/09/26/ThreadPool/</loc>
     
     <lastmod>2018-09-26T15:51:26.108Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://carl-hh.github.io/categories/index.html</loc>
-    
-    <lastmod>2018-09-23T14:55:37.843Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://carl-hh.github.io/tags/index.html</loc>
-    
-    <lastmod>2018-09-23T14:54:49.975Z</lastmod>
     
   </url>
   
