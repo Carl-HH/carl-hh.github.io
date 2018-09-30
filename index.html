@@ -356,7 +356,8 @@
           
           Condition接口示例
 ​    Condition是在AQS中配合使用的wait/nofity线程通信协调工具类，我们可以称之为等待队列。​    Condition定义了等待/通知两种类型的方法，当前线程调用这些方法时，需要提前获取到Condition对象关联的锁。Condition对象是调用Lock对象的newCondition()方法创建出来的，换句话说，Condition是依赖Lock对象的。
-123456789101112131415161718192021&gt; Lock lock = new ReentrantLock();&gt;     Condition condi
+
+1234567891011121314151617181920Lock lock = new ReentrantLock();    Condition condition = lock
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -674,10 +675,12 @@
 实现重进入
 重进入是指任意线程在获取到锁之后能够再次获取该锁而不会被阻塞，该特性实现需要解决以下两个问题
 
+
 线程再次获取锁。锁需要去识别获取锁的线程是否为当前占据锁的线程，如果是，则再次获取成功。
 锁最终的释放。线程重复获取锁n次，随后在第n次释放锁后，其他线程能够获取到该锁。锁的最终释放要求锁对于获取进行计数自增，计数表示当前锁被重复获取的次数，而锁被释放的时候，计数自减，当计数为0时，表示锁以及成功释放。
 
-ReentrantL
+
+Reentran
           ...
           <!--noindex-->
           <div class="post-button text-center">
