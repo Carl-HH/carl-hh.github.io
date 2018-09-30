@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="​    排他锁在同一时刻只允许一个线程进行访问，而读写锁在统一时刻允许多个读线程访问，但是在写线程访问时，所有的读写线程都被阻塞。读写锁维护了一对锁，一个读锁，一个写锁，通过分离读锁和写锁，使得并发性相比一般的排他锁有很大提升。因为大多数应用场景都是读多于写的，因此在这样的情况下，读写锁可以提高吞吐量。​    读写锁三大特性：公平性选择、重进入、锁降级    特性 说明     公平性选择">
+<meta property="og:type" content="article">
+<meta property="og:title" content="读写锁">
+<meta property="og:url" content="https://huachen.ml/2018/09/30/concurrent/读写锁/index.html">
+<meta property="og:site_name" content="Blog">
+<meta property="og:description" content="​    排他锁在同一时刻只允许一个线程进行访问，而读写锁在统一时刻允许多个读线程访问，但是在写线程访问时，所有的读写线程都被阻塞。读写锁维护了一对锁，一个读锁，一个写锁，通过分离读锁和写锁，使得并发性相比一般的排他锁有很大提升。因为大多数应用场景都是读多于写的，因此在这样的情况下，读写锁可以提高吞吐量。​    读写锁三大特性：公平性选择、重进入、锁降级    特性 说明     公平性选择">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://huachen.ml/2018/09/30/concurrent/读写锁/读写锁状态的划分方式.jpg">
+<meta property="og:updated_time" content="2018-09-30T10:50:48.092Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="读写锁">
+<meta name="twitter:description" content="​    排他锁在同一时刻只允许一个线程进行访问，而读写锁在统一时刻允许多个读线程访问，但是在写线程访问时，所有的读写线程都被阻塞。读写锁维护了一对锁，一个读锁，一个写锁，通过分离读锁和写锁，使得并发性相比一般的排他锁有很大提升。因为大多数应用场景都是读多于写的，因此在这样的情况下，读写锁可以提高吞吐量。​    读写锁三大特性：公平性选择、重进入、锁降级    特性 说明     公平性选择">
+<meta name="twitter:image" content="https://huachen.ml/2018/09/30/concurrent/读写锁/读写锁状态的划分方式.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://huachen.ml/2018/09/30/concurrent/读写锁/"/>
+
+
+
+
+
+  <title>读写锁 | Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+    
+    <a href="https://github.com/Carl-HH"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>    
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+    <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Learning Records</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huachen.ml/2018/09/30/concurrent/读写锁/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Hua Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/blog-logo.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">读写锁</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-30T13:48:53+08:00">
+                2018-09-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/concurrent/" itemprop="url" rel="index">
+                    <span itemprop="name">concurrent</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>​    排他锁在同一时刻只允许一个线程进行访问，而读写锁在统一时刻允许多个读线程访问，但是在写线程访问时，所有的读写线程都被阻塞。读写锁维护了一对锁，一个读锁，一个写锁，通过分离读锁和写锁，使得并发性相比一般的排他锁有很大提升。因为大多数应用场景都是读多于写的，因此在这样的情况下，读写锁可以提高吞吐量。<br>​    读写锁三大特性：公平性选择、重进入、锁降级</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>公平性选择</td>
+<td>支持非公平（默认）和公平的锁获取方式，吞吐量还是非公平性由于公平</td>
+</tr>
+<tr>
+<td>重进入</td>
+<td>该锁支持重入，以读写线程为例：读线程在获取读锁之后，能够再次获取读锁。而写线程在获取了写锁之后，能够再次获取写锁，同时也可以获取读锁</td>
+</tr>
+<tr>
+<td>锁降级</td>
+<td>遵循获取写锁、获取读锁在释放写锁的次序，写锁可以降级为读锁</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<h1 id="读写锁的实现分析"><a href="#读写锁的实现分析" class="headerlink" title="读写锁的实现分析"></a>读写锁的实现分析</h1><h2 id="读写状态的设计"><a href="#读写状态的设计" class="headerlink" title="读写状态的设计"></a>读写状态的设计</h2><blockquote>
+<p>​    读写锁同样利用同步器实现锁的功能，在ReetrantLock中，同步状态表示锁被一个线程重复获取的次数，而读写锁的自定义同步器需要在同步状态上维护多个读线程和一个写线程的状态。如果想在一个整型变量上维护这样一个状态，那么采用按位分割的方式是一个不错的选择。如下图所示，将一个变量分为两个部分，高16位表示读，低16位表示写</p>
+<p><img src="/2018/09/30/concurrent/读写锁/读写锁状态的划分方式.jpg" alt="读写锁状态的划分方式"><br>​    上图中同步状态表示一个线程已经获取了写锁，且重进入了两次，同时也连续获取了两次读锁。想要快速读取这个状态，可以通过位运算。当前状态为S，写状态等于S&amp;0x0000FFFF，读状态等S&gt;&gt;&gt;16。当读状态+1时，等于S+1，写状态加1等于S+（1&lt;&lt;16）。</p>
+</blockquote>
+<h2 id="写锁的获取与释放"><a href="#写锁的获取与释放" class="headerlink" title="写锁的获取与释放"></a>写锁的获取与释放</h2><blockquote>
+<p>​    写锁是一个支持重进入的排它锁。如果当前线程获取了写锁，则增加写状态。如果当前线程在获取写锁时，读锁已经获取（读状态不为0）或者该线程不是已经获取写锁的线程，则当前线程进入等待状态。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&gt;  <span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">tryAcquire</span><span class="params">(<span class="keyword">int</span> acquires)</span> </span>&#123;</span><br><span class="line">&gt;             <span class="comment">/*</span></span><br><span class="line"><span class="comment">&gt;              * Walkthrough:</span></span><br><span class="line"><span class="comment">&gt;              * 1. If read count nonzero or write count nonzero</span></span><br><span class="line"><span class="comment">&gt;              *    and owner is a different thread, fail.</span></span><br><span class="line"><span class="comment">&gt;              * 2. If count would saturate, fail. (This can only</span></span><br><span class="line"><span class="comment">&gt;              *    happen if count is already nonzero.)</span></span><br><span class="line"><span class="comment">&gt;              * 3. Otherwise, this thread is eligible for lock if</span></span><br><span class="line"><span class="comment">&gt;              *    it is either a reentrant acquire or</span></span><br><span class="line"><span class="comment">&gt;              *    queue policy allows it. If so, update state</span></span><br><span class="line"><span class="comment">&gt;              *    and set owner.</span></span><br><span class="line"><span class="comment">&gt;              */</span></span><br><span class="line">&gt;             Thread current = Thread.currentThread();</span><br><span class="line">&gt;             <span class="keyword">int</span> c = getState();</span><br><span class="line">&gt;             <span class="keyword">int</span> w = exclusiveCount(c);</span><br><span class="line">&gt;             <span class="keyword">if</span> (c != <span class="number">0</span>) &#123;</span><br><span class="line">&gt;                 <span class="comment">// (Note: if c != 0 and w == 0 then shared count != 0)</span></span><br><span class="line">&gt;                 <span class="comment">//如果存在读锁 或者当前线程不是获取写锁的线程 返回false</span></span><br><span class="line">&gt;                 <span class="keyword">if</span> (w == <span class="number">0</span> || current != getExclusiveOwnerThread())</span><br><span class="line">&gt;                     <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&gt;                 <span class="keyword">if</span> (w + exclusiveCount(acquires) &gt; MAX_COUNT)</span><br><span class="line">&gt;                     <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Maximum lock count exceeded"</span>);</span><br><span class="line">&gt;                 <span class="comment">// Reentrant acquire</span></span><br><span class="line">&gt;                 setState(c + acquires);</span><br><span class="line">&gt;                 <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&gt;             &#125;</span><br><span class="line">&gt;             <span class="keyword">if</span> (writerShouldBlock() ||</span><br><span class="line">&gt;                 !compareAndSetState(c, c + acquires))</span><br><span class="line">&gt;                 <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&gt;             setExclusiveOwnerThread(current);</span><br><span class="line">&gt;             <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&gt;         &#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>​    该方法处理重入条件（当前线程为获取了写锁的线程）之外，增加了一个读锁是否存在的判断。如果存在读锁，则写锁不能被获取，原因在于：读写锁要确保写锁的操作对读锁是可见的。如果允许读锁在已被获取的情况下对写锁获取，那么正在运行的其他读线程就无法感知到当前写线程的操作。因此，只有等待其他线程都释放了读锁，写锁才能被当前线程获取，写锁一旦被获取，则其他读写线程的后续访问都被阻塞。<br>​    写锁的释放和ReentrantLock的释放过程基本类似，每次释放减少写状态，当写状态为0时表示写锁已被释放，从而等待的读写线程能够继续访问读写锁，同时前次写线程的修改对后续读写线程可见。</p>
+</blockquote>
+<h2 id="读锁的获取与释放"><a href="#读锁的获取与释放" class="headerlink" title="读锁的获取与释放"></a>读锁的获取与释放</h2><blockquote>
+<p>​    读锁是一个支持重进入的共享锁，它能够被多个线程同时获取，在没有其他线程访问时，读锁总会被成功地获取。如果当前线程已经获取了读锁，则增加读状态，如果获取读锁时写锁已经被其他线程获取，则进入等待状态。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">tryAcquireShared</span><span class="params">(<span class="keyword">int</span> unused)</span> </span>&#123;</span><br><span class="line">&gt;             <span class="comment">/*</span></span><br><span class="line"><span class="comment">&gt;              * Walkthrough:</span></span><br><span class="line"><span class="comment">&gt;              * 1. If write lock held by another thread, fail.</span></span><br><span class="line"><span class="comment">&gt;              * 2. Otherwise, this thread is eligible for</span></span><br><span class="line"><span class="comment">&gt;              *    lock wrt state, so ask if it should block</span></span><br><span class="line"><span class="comment">&gt;              *    because of queue policy. If not, try</span></span><br><span class="line"><span class="comment">&gt;              *    to grant by CASing state and updating count.</span></span><br><span class="line"><span class="comment">&gt;              *    Note that step does not check for reentrant</span></span><br><span class="line"><span class="comment">&gt;              *    acquires, which is postponed to full version</span></span><br><span class="line"><span class="comment">&gt;              *    to avoid having to check hold count in</span></span><br><span class="line"><span class="comment">&gt;              *    the more typical non-reentrant case.</span></span><br><span class="line"><span class="comment">&gt;              * 3. If step 2 fails either because thread</span></span><br><span class="line"><span class="comment">&gt;              *    apparently not eligible or CAS fails or count</span></span><br><span class="line"><span class="comment">&gt;              *    saturated, chain to version with full retry loop.</span></span><br><span class="line"><span class="comment">&gt;              */</span></span><br><span class="line">&gt;             Thread current = Thread.currentThread();</span><br><span class="line">&gt;             <span class="keyword">int</span> c = getState();</span><br><span class="line">&gt;             <span class="keyword">if</span> (exclusiveCount(c) != <span class="number">0</span> &amp;&amp;</span><br><span class="line">&gt;                 getExclusiveOwnerThread() != current)</span><br><span class="line">&gt;                 <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">&gt;             <span class="keyword">int</span> r = sharedCount(c);</span><br><span class="line">&gt;             <span class="keyword">if</span> (!readerShouldBlock() &amp;&amp;</span><br><span class="line">&gt;                 r &lt; MAX_COUNT &amp;&amp;</span><br><span class="line">&gt;                 compareAndSetState(c, c + SHARED_UNIT)) &#123;</span><br><span class="line">&gt;                 <span class="keyword">if</span> (r == <span class="number">0</span>) &#123;</span><br><span class="line">&gt;                     firstReader = current;</span><br><span class="line">&gt;                     firstReaderHoldCount = <span class="number">1</span>;</span><br><span class="line">&gt;                 &#125; <span class="keyword">else</span> <span class="keyword">if</span> (firstReader == current) &#123;</span><br><span class="line">&gt;                     firstReaderHoldCount++;</span><br><span class="line">&gt;                 &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">&gt;                     HoldCounter rh = cachedHoldCounter;</span><br><span class="line">&gt;                     <span class="keyword">if</span> (rh == <span class="keyword">null</span> || rh.tid != getThreadId(current))</span><br><span class="line">&gt;                         cachedHoldCounter = rh = readHolds.get();</span><br><span class="line">&gt;                     <span class="keyword">else</span> <span class="keyword">if</span> (rh.count == <span class="number">0</span>)</span><br><span class="line">&gt;                         readHolds.set(rh);</span><br><span class="line">&gt;                     rh.count++;</span><br><span class="line">&gt;                 &#125;</span><br><span class="line">&gt;                 <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&gt;             &#125;</span><br><span class="line">&gt;             <span class="keyword">return</span> fullTryAcquireShared(current);</span><br><span class="line">&gt;         &#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>​    在该方法中，如果其他线程已经获取了写锁，则当前线程获取读锁失败，进入等待状态。如果当前线程获取了写锁或者写锁未被获取，则当前线程（线程安全，依靠CAS保证）增加状态，成功获取读锁。如果当前线程满足对state的操作条件，就利用CAS设置state+SHARED_UNIT,实际上就是读状态+1。但是需要注意，这个state是全局的，即所有线程获取读锁次数的总和，而为了方便计算本线程的读锁次数以及释放掉锁，需要在ThreadLocal中维护一个变量。这就是HoldCounter。源码下半部分的基本做的事情就是在让HoldCounter加一。<br>​    读锁的每次释放（线程安全的，可能有多个读线程同时释放读锁）均减少读状态，减少的值是（1 &lt;&lt; 16）。</p>
+</blockquote>
+<h2 id="锁降级"><a href="#锁降级" class="headerlink" title="锁降级"></a>锁降级</h2><blockquote>
+<p>锁降级是指写锁降级为读锁，如果当前线程拥有写锁，然后将其释放，最后再获取读锁，这种分段完成的过程不能称之为锁降级。锁降级是指把持住（当前拥有的）写锁，在获取读锁，随后释放（先前拥有的）写锁的过程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProcessData</span> </span>&#123;</span><br><span class="line">&gt;     <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ReentrantReadWriteLock rwl = <span class="keyword">new</span> ReentrantReadWriteLock();</span><br><span class="line">&gt;     <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Lock readLock = rwl.readLock();</span><br><span class="line">&gt;     <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Lock writeLock = rwl.writeLock();</span><br><span class="line">&gt;     <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">boolean</span> update = <span class="keyword">false</span>;</span><br><span class="line">&gt; </span><br><span class="line">&gt;     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processData</span><span class="params">()</span> </span>&#123;</span><br><span class="line">&gt;         readLock.lock();</span><br><span class="line">&gt;         <span class="keyword">if</span> (!update) &#123;</span><br><span class="line">&gt;             readLock.unlock();</span><br><span class="line">&gt;             writeLock.lock();</span><br><span class="line">&gt;             <span class="keyword">try</span> &#123;</span><br><span class="line">&gt;                 <span class="keyword">if</span> (!update) &#123;</span><br><span class="line">&gt;                     update = <span class="keyword">true</span>;</span><br><span class="line">&gt;                 &#125;</span><br><span class="line">&gt;                 readLock.lock();</span><br><span class="line">&gt;             &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">&gt;                 writeLock.unlock();</span><br><span class="line">&gt;             &#125;</span><br><span class="line">&gt;         &#125;</span><br><span class="line">&gt;         <span class="keyword">try</span> &#123;</span><br><span class="line">&gt;         &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">&gt;             readLock.unlock();</span><br><span class="line">&gt;         &#125;</span><br><span class="line">&gt;     &#125;</span><br><span class="line">&gt; &#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>​    以上例子说明了一个锁降级的过程。当数据发生变化时，update变量被设置为false，此时所有访问process（）方法的线程都能够感知到变化，但只有一个线程可以获取到写锁，其他线程会被阻塞在读锁和写锁的Lock（）方法上。当前线程获取写锁完成数据准备之后，在获取读锁，随后释放写锁，完成锁降级。<br>​    锁降级主要是保证数据可见性，如果当前线程不先获取读锁而直接释放写锁，若此时有另外一个线程T获取了写锁并修改了数据，那么当前线程无法感知线程T的数据更新。如果当前线程获取读锁，则线程T将会被阻塞，直到当前线程使用数据并释放读锁之后，线程T才能获取写锁进行数据更新。</p>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/30/concurrent/重入锁/" rel="next" title="重入锁">
+                <i class="fa fa-chevron-left"></i> 重入锁
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/30/concurrent/Condition接口/" rel="prev" title="Condition接口">
+                Condition接口 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/blog-logo.jpg"
+                alt="Hua Chen" />
+            
+              <p class="site-author-name" itemprop="name">Hua Chen</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#读写锁的实现分析"><span class="nav-number">1.</span> <span class="nav-text">读写锁的实现分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#读写状态的设计"><span class="nav-number">1.1.</span> <span class="nav-text">读写状态的设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#写锁的获取与释放"><span class="nav-number">1.2.</span> <span class="nav-text">写锁的获取与释放</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#读锁的获取与释放"><span class="nav-number">1.3.</span> <span class="nav-text">读锁的获取与释放</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#锁降级"><span class="nav-number">1.4.</span> <span class="nav-text">锁降级</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Hua Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
