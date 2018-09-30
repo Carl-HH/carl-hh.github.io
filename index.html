@@ -354,10 +354,8 @@
       
         
           
-          Condition接口示例
-​    Condition是在AQS中配合使用的wait/nofity线程通信协调工具类，我们可以称之为等待队列。​    Condition定义了等待/通知两种类型的方法，当前线程调用这些方法时，需要提前获取到Condition对象关联的锁。Condition对象是调用Lock对象的newCondition()方法创建出来的，换句话说，Condition是依赖Lock对象的。
-
-1234567891011121314151617181920Lock lock = new ReentrantLock();    Condition condition = lock
+          Condition接口示例​    Condition是在AQS中配合使用的wait/nofity线程通信协调工具类，我们可以称之为等待队列。    Condition定义了等待/通知两种类型的方法，当前线程调用这些方法时，需要提前获取到Condition对象关联的锁。Condition对象是调用Lock对象的newCondition()方法创建出来的，换句话说，Condition是依赖Lock对象的。
+1234567891011121314151617181920Lock lock = new ReentrantLock();    Condition condition = lock.ne
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -505,8 +503,7 @@
       
         
           
-          
-​    排他锁在同一时刻只允许一个线程进行访问，而读写锁在统一时刻允许多个读线程访问，但是在写线程访问时，所有的读写线程都被阻塞。读写锁维护了一对锁，一个读锁，一个写锁，通过分离读锁和写锁，使得并发性相比一般的排他锁有很大提升。因为大多数应用场景都是读多于写的，因此在这样的情况下，读写锁可以提高吞吐量。​    读写锁三大特性：公平性选择、重进入、锁降级
+          ​    排他锁在同一时刻只允许一个线程进行访问，而读写锁在统一时刻允许多个读线程访问，但是在写线程访问时，所有的读写线程都被阻塞。读写锁维护了一对锁，一个读锁，一个写锁，通过分离读锁和写锁，使得并发性相比一般的排他锁有很大提升。因为大多数应用场景都是读多于写的，因此在这样的情况下，读写锁可以提高吞吐量。​    读写锁三大特性：公平性选择、重进入、锁降级
 
 
 
@@ -521,7 +518,7 @@
 
 
 重进入
-该锁支持重入，以读写线程为例：读线程在获取读锁之后，能够再次获取读锁。而写线程在获取了写锁之后，能够再次获取写锁，同时也可
+该锁支持重入，以读写线程为例：读线程在获取读锁之后，能够再次获取读锁。而写线程在获取了写锁之后，能够再次获取写锁，同时也可以
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -669,18 +666,13 @@
       
         
           
-          
-​    ReentrantLock 是一种支持支持重进入的锁，它表示该锁能够支持一个线程对资源的重复加锁，除此之外，该锁还支持获取锁的公平性和非公平性选择。
-
-实现重进入
-重进入是指任意线程在获取到锁之后能够再次获取该锁而不会被阻塞，该特性实现需要解决以下两个问题
-
+          ​    ReentrantLock 是一种支持支持重进入的锁，它表示该锁能够支持一个线程对资源的重复加锁，除此之外，该锁还支持获取锁的公平性和非公平性选择。
+实现重进入重进入是指任意线程在获取到锁之后能够再次获取该锁而不会被阻塞，该特性实现需要解决以下两个问题
 
 线程再次获取锁。锁需要去识别获取锁的线程是否为当前占据锁的线程，如果是，则再次获取成功。
 锁最终的释放。线程重复获取锁n次，随后在第n次释放锁后，其他线程能够获取到该锁。锁的最终释放要求锁对于获取进行计数自增，计数表示当前锁被重复获取的次数，而锁被释放的时候，计数自减，当计数为0时，表示锁以及成功释放。
 
-
-Reentran
+ReentrantLock
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -828,10 +820,11 @@ Reentran
       
         
           
-          CPU多级缓存cache因为CPU的频率太快了，快到主存跟不上，这样在处理器时钟周期内，CPU常常需要等待主存，浪费资源。所以cache的出现，是为了缓解CPU和内存之间速度的不匹配问题（结构：cpu -&gt; cache -&gt; memory）。出现的意义（局部性原理）：
+          CPU多级缓存cache因为CPU的频率太快了，快到主存跟不上，这样在处理器时钟周期内，CPU常常需要等待主存，浪费资源。所以cache的出现，是为了缓解CPU和内存之间速度的不匹配问题（结构：cpu -&gt; cache -&gt; memory）。
+出现的意义（局部性原理）：
 
 A. 时间局部性：如果某个数据被访问，那么在不久的将来它很可能被再次访问；
-B. 空间局部性：如果某个数据被访问，那么与它相邻的数据很快也可能被访问；MESI（缓存一致性）cache line: cache line是cache与内存数据交换的最小单位，根据操作系统一般是32byte或64byte。在MESI协议中
+B. 空间局部性：如果某个数据被访问，那么与它相邻的数据很快也可能被访问；MESI（缓存一致性）cache line: cache line是cache与内存数据交换的最小单位，根据操作系统一般是32byte或64byte。在MESI协议
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -983,9 +976,11 @@ B. 空间局部性：如果某个数据被访问，那么与它相邻的数据�
 CountDownLatch
 CountDownLatch的用法
 
+
 某一线程在开始运行前等待n个线程执行完毕。将CountDownLatch的计数器初始化为n new CountDownLatch(n) ，每当一个任务线程执行完毕，就将计数器减1 countdownlatch.countDown()，当计数器的值变为0时，在CountDownLatch上 await() 的线程就会被唤醒。一个典型应用场景就是启动一个服务时，主线程需要等待多个组件加载完毕，之后再继续执行。
 
-实现多个线程开始执行任务的最大并行性。注意是并行性，不是并发，强调
+
+实现多个线程开始执行任务的最大并行性。注意是并行性，不是并发，
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1133,17 +1128,13 @@ CountDownLatch的用法
       
         
           
-          
-重写同步器指定方法的时候，需要使用同步器提供的如下3个方法来访问或者修改同步状态。
+          重写同步器指定方法的时候，需要使用同步器提供的如下3个方法来访问或者修改同步状态。
 
 getState():获取当前同步状态
 setState(int newState):设置当前同步状态
 compareAndSetState(int expect,int update):使用CAS设置当前状态，该方法能保证状态设置的原子性
 
-
-
 同步器可重写的方法与描述如下表
-
 
 
 
@@ -1157,7 +1148,7 @@ protected boolean tryAcquire(int arg)
 独占式获取同步状态，实现该方法需要查询当前状态并判断同步状态是否符合预期，然后再进行CAS设置同步状态
 
 
-protecte
+protected bo
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1457,14 +1448,11 @@ atomicXXX: CAS、Unsafe.compareAndSwapInt
       
         
           
-          Java线程池
-new Thread 弊端
+          Java线程池new Thread 弊端
 
 每次新建对象，性能差
 线程缺乏统一管理，可能无限制的新建线程，相互竞争，有可能占用过多系统资源导致死机或者OOM
 缺少更多的功能，如更多执行，定期执行，线程中断
-
-
 
 线程池的好处
 
@@ -1472,13 +1460,11 @@ new Thread 弊端
 可以有效的控制最大并发线程数，提高系统资源利用率，同时可以避免过多资源竞争，避免阻塞
 提供定时执行、定期执行、单线程、并发数控制等功能
 
-
-TreadPoolExecutor
-关键参数
+TreadPoolExecutor关键参数
 
 corePoolSize : 核心线程数量
 maximumPoolSize: 线程最大线程数
-workQueue: 阻塞队列，存储
+workQueue: 阻塞队列，存储等待执行的
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1626,15 +1612,12 @@ workQueue: 阻塞队列，存储
       
         
           
-          volatile关键字volatile内存语义
-volatile是Java虚拟机提供的轻量级的同步机制。volatile关键字有如下两个作用:
+          volatile关键字volatile内存语义volatile是Java虚拟机提供的轻量级的同步机制。volatile关键字有如下两个作用:
 
 保证被volatile修饰的共享变量对所有线程总数可见的，也就是当一个线程修改了一个被volatile修饰共享变量的值，新值总是可以被其他线程立即得知。
-禁止指令重排序优化。
+禁止指令重排序优化。volatile的可见性关于volatile的可见性作用，我们必须意识到被volatile修饰的变量对所有线程总是立即可见的，对volatile变量的所有写操作总是能立刻反映到其他线程中，但是对于volatile变量运算操作在多线程环境并不保证安全性，如下
 
-
-volatile的可见性
-关于volatile的可见性作用，我们必须意识到被volatile修饰的变量对所有线程总是立即可见的，对volatile变量的所有写操作总是能立刻反映到其他线程中，但是对于volatile变量运算操作在多线程环境并不保证安全性，如下code 123
+code 123456
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1782,9 +1765,7 @@ volatile的可见性
       
         
           
-          synchronized原理java对象头
-synchronized用的锁是存在java对象头里的。Java对象头长度如下表：
-
+          synchronized原理java对象头synchronized用的锁是存在java对象头里的。Java对象头长度如下表：
 
 
 
@@ -1811,15 +1792,12 @@ Array length
 
 
 
-
 Java对象头的存储结构
 
 32位虚拟机：
 64位虚拟街
 
-
-锁升级与对比
-锁一共有4种状态：级别从高到低依次为：无锁状态、偏向锁状态、轻量级锁状态和重量级锁状态。这几个状态会随
+锁升级与对比锁一共有4种状态：级别从高到低依次为：无锁状态、偏向锁状态、轻量级锁状态和重量级锁状态。这几个状态会随着竞争情况
           ...
           <!--noindex-->
           <div class="post-button text-center">

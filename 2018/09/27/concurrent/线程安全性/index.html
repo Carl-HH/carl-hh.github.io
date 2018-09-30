@@ -89,7 +89,7 @@
 <meta property="og:image" content="https://huachen.ml/2018/09/27/concurrent/线程安全性/CAS.jpg">
 <meta property="og:image" content="https://huachen.ml/2018/09/27/concurrent/线程安全性/volatile写.jpg">
 <meta property="og:image" content="https://huachen.ml/2018/09/27/concurrent/线程安全性/volatile读.jpg">
-<meta property="og:updated_time" content="2018-09-30T10:47:51.364Z">
+<meta property="og:updated_time" content="2018-09-30T14:34:50.181Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="线程安全性">
 <meta name="twitter:description" content="线程安全性当多个线程访问某个类的时候，不管运行时环境采用何种调度方式或者这些线程按何种顺序交替执行，并且在主调代码中不需要任何额外的同步或者协同，这个类都能表现出正确的行为，那么就称这个类是线程安全的。 原子性 atomic包 atomicXXX: CAS、Unsafe.compareAndSwapInt  123456789101112131415161718192021222324252627">
@@ -386,32 +386,22 @@
 <blockquote>
 <p>AtomicStampedReference原子类是一个带有时间戳的对象引用，在每次修改后，AtomicStampedReference不仅会设置新值而且还会记录更改的时间。当AtomicStampedReference设置对象值时，对象值以及时间戳都必须满足期望值才能写入成功，这也就解决了反复读写时，无法预知值是否已被修改的窘境(解决ABA问题)</p>
 </blockquote>
-<h2 id="CAS-Compare-and-Swap-原理"><a href="#CAS-Compare-and-Swap-原理" class="headerlink" title="CAS(Compare and Swap)原理"></a>CAS(Compare and Swap)原理</h2><blockquote>
-<p>在JDK 5之前Java语言是靠synchronized关键字保证同步的，这会导致有锁<br>锁机制存在以下问题：</p>
-</blockquote>
+<h2 id="CAS-Compare-and-Swap-原理"><a href="#CAS-Compare-and-Swap-原理" class="headerlink" title="CAS(Compare and Swap)原理"></a>CAS(Compare and Swap)原理</h2><p>在JDK 5之前Java语言是靠synchronized关键字保证同步的，这会导致有锁<br>锁机制存在以下问题：</p>
 <ol>
 <li>在多线程竞争下，加锁、释放锁会导致比较多的上下文切换和调度延时，引起性能问题。</li>
 <li>一个线程持有锁会导致其它所有需要此锁的线程挂起。</li>
 <li>如果一个优先级高的线程等待一个优先级低的线程释放锁会导致优先级倒置，引起性能风险。</li>
 </ol>
-<blockquote>
 <p>volatile是不错的机制，但是volatile不能保证原子性。因此对于同步最终还是要回到锁机制上来。<br>独占锁是一种悲观锁，synchronized就是一种独占锁，会导致其它所有需要锁的线程挂起，等待持有锁的线程释放锁。而另一个更加有效的锁就是乐观锁。所谓乐观锁就是，每次不加锁而是假设没有冲突而去完成某项操作，如果因为冲突失败就重试，直到成功为止。乐观锁用到的机制就是CAS，Compare and Swap。<br>CAS的全称是Compare And Swap 即比较交换，其算法核心思想如下:</p>
-</blockquote>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">执行函数：CAS(V,E,N)</span><br></pre></td></tr></table></figure>
-<blockquote>
 <p>其包含3个参数</p>
-</blockquote>
 <ul>
 <li>V表示要更新的变量</li>
 <li>E表示预期值</li>
 <li>N表示新值</li>
 </ul>
-<blockquote>
 <p>如果V值等于E值，则将V的值设为N。若V值和E值不同，则说明已经有其他线程做了更新，则当前线程什么都不做。通俗的理解就是CAS操作需要我们提供一个期望值，当期望值与当前线程的变量值相同时，说明还没线程修改该值，当前线程可以进行修改，也就是执行CAS操作，但如果期望值与当前线程不符，则说明该值已被其他线程修改，此时不执行更新操作，但可以选择重新读取该变量再尝试再次修改该变量，也可以放弃操作。<br><img src="/2018/09/27/concurrent/线程安全性/CAS.jpg" alt="CAS"><br>由于CAS操作属于乐观派，它总认为自己可以成功完成操作，当多个线程同时使用CAS操作一个变量时，只有一个会胜出，并成功更新，其余均会失败，但失败的线程并不会被挂起，仅是被告知失败，并且允许再次尝试，当然也允许失败的线程放弃操作，这点从图中也可以看出来。基于这样的原理，CAS操作即使没有锁，同样知道其他线程对共享资源操作影响，并执行相应的处理措施。同时从这点也可以看出，由于无锁操作中没有锁的存在，因此不可能出现死锁的情况，也就是说无锁操作天生免疫死锁。</p>
-</blockquote>
-<h2 id="CAS缺点"><a href="#CAS缺点" class="headerlink" title="CAS缺点"></a>CAS缺点</h2><blockquote>
-<p>CAS虽然很高效的解决了原子操作问题，但是CAS仍然存在三大问题。</p>
-</blockquote>
+<h2 id="CAS缺点"><a href="#CAS缺点" class="headerlink" title="CAS缺点"></a>CAS缺点</h2><p>CAS虽然很高效的解决了原子操作问题，但是CAS仍然存在三大问题。</p>
 <ol>
 <li>循环时间长开销很大。</li>
 <li>只能保证一个共享变量的原子操作。</li>
@@ -430,37 +420,27 @@
 <li><p>Atomic:竞争激烈时能维持常态，比Lock性能好；但只能同步一个值。</p>
 </li>
 </ul>
-<h1 id="可见性"><a href="#可见性" class="headerlink" title="可见性"></a>可见性</h1><blockquote>
-<p>导致共享变量在线程建不可见的原因</p>
+<h1 id="可见性"><a href="#可见性" class="headerlink" title="可见性"></a>可见性</h1><p>导致共享变量在线程建不可见的原因</p>
 <ol>
 <li>线程交叉执行</li>
 <li>重排序结合线程交叉执行</li>
 <li>共享变量更新后的值没有在工作内存与主存间及时更新</li>
 </ol>
-</blockquote>
-<h2 id="synchronized"><a href="#synchronized" class="headerlink" title="synchronized"></a>synchronized</h2><blockquote>
-<p>JMM关于synchronized的两条规定：</p>
+<h2 id="synchronized"><a href="#synchronized" class="headerlink" title="synchronized"></a>synchronized</h2><p>JMM关于synchronized的两条规定：</p>
 <ol>
 <li>线程解锁前，必须把共享变量的最新值刷新到主内存</li>
 <li>线程加锁时，将清空工作内存中共享变量的值，从而使用共享变量时需要从主内存中重新读取最新的值（注意：加锁和解锁是同一把锁）</li>
 </ol>
-</blockquote>
-<h2 id="volatile"><a href="#volatile" class="headerlink" title="volatile"></a>volatile</h2><blockquote>
-<p>通过加入内存屏障和禁止重排序优化来实现</p>
+<h2 id="volatile"><a href="#volatile" class="headerlink" title="volatile"></a>volatile</h2><p>通过加入内存屏障和禁止重排序优化来实现</p>
 <ul>
 <li>对volatile变量写操作时，会在写操作后加入一条store屏障指令，将本地内存中的共享变量值刷新到主内存<br><img src="/2018/09/27/concurrent/线程安全性/volatile写.jpg" alt="volatile写"></li>
 <li>对volatile变量读操作时，会在读操作前加入一条load屏障指令,从主内存中读取共享变量<br><img src="/2018/09/27/concurrent/线程安全性/volatile读.jpg" alt="volatile读"></li>
 </ul>
-</blockquote>
-<h1 id="有序性"><a href="#有序性" class="headerlink" title="有序性"></a>有序性</h1><blockquote>
-<p>Java内存模型中，允许编译器和处理器对指令进行重排序，但是重排序过程不会影响到单线程程序的执行，却会影响到多线程并发执行的正确性。<br><br> volatile,synchronized,lock</p>
-</blockquote>
+<h1 id="有序性"><a href="#有序性" class="headerlink" title="有序性"></a>有序性</h1><p>Java内存模型中，允许编译器和处理器对指令进行重排序，但是重排序过程不会影响到单线程程序的执行，却会影响到多线程并发执行的正确性。<br><br> volatile,synchronized,lock</p>
 <ul>
 <li>happeens-before原则<br>Java内存模型中定义的两项操作之间的次序关系，如果说操作A先行发生于操作B，操作A产生的影响能被操作B观察到，“影响”包含了修改了内存中共享变量的值、发送了消息、调用了方法等。</li>
 </ul>
-<blockquote>
 <p>下面是Java内存模型下一些”天然的“happens-before关系，这些happens-before关系无须任何同步器协助就已经存在，可以在编码中直接使用。如果两个操作之间的关系不在此列，并且无法从下列规则推导出来的话，它们就没有顺序性保障，虚拟机可以对它们进行随意地重排序。</p>
-</blockquote>
 <ol>
 <li>程序次序规则(Pragram Order Rule)：在一个线程内，按照程序代码顺序，书写在前面的操作先行发生于书写在后面的操作。准确地说应该是控制流顺序而不是程序代码顺序，因为要考虑分支、循环结构。</li>
 <li>管程锁定规则(Monitor Lock Rule)：一个unlock操作先行发生于后面对同一个锁的lock操作。这里必须强调的是同一个锁，而”后面“是指时间上的先后顺序。</li>
@@ -471,9 +451,7 @@
 <li>对象终结规则(Finalizer Rule)：一个对象初始化完成(构造方法执行完成)先行发生于它的finalize()方法的开始。</li>
 <li>传递性(Transitivity)：如果操作A先行发生于操作B，操作B先行发生于操作C，那就可以得出操作A先行发生于操作C的结论。</li>
 </ol>
-<blockquote>
 <p>一个操作”时间上的先发生“不代表这个操作会是”先行发生“，那如果一个操作”先行发生“是否就能推导出这个操作必定是”时间上的先发生 “呢？也是不成立的，一个典型的例子就是指令重排序。所以时间上的先后顺序与happens-before原则之间基本没有什么关系，所以衡量并发安全问题一切必须以happens-before原则为准。</p>
-</blockquote>
 
       
     </div>
