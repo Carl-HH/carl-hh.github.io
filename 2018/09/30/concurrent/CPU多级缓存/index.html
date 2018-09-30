@@ -88,7 +88,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://huachen.ml/2018/09/30/concurrent/CPU多级缓存/MESI状态转换图.jpg">
 <meta property="og:image" content="https://huachen.ml/2018/09/30/concurrent/CPU多级缓存/MESI状态转换表.jpg">
-<meta property="og:updated_time" content="2018-09-29T16:05:08.364Z">
+<meta property="og:updated_time" content="2018-09-30T10:31:47.325Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CPU多级缓存">
 <meta name="twitter:description" content="CPU多级缓存cache因为CPU的频率太快了，快到主存跟不上，这样在处理器时钟周期内，CPU常常需要等待主存，浪费资源。所以cache的出现，是为了缓解CPU和内存之间速度的不匹配问题（结构：cpu -&amp;gt; cache -&amp;gt; memory）。出现的意义（局部性原理）：  A. 时间局部性：如果某个数据被访问，那么在不久的将来它很可能被再次访问； B. 空间局部性：如果某个数据被访问，那">
@@ -359,8 +359,7 @@
         <h1 id="CPU多级缓存"><a href="#CPU多级缓存" class="headerlink" title="CPU多级缓存"></a>CPU多级缓存</h1><h2 id="cache"><a href="#cache" class="headerlink" title="cache"></a>cache</h2><p>因为CPU的频率太快了，快到主存跟不上，这样在处理器时钟周期内，CPU常常需要等待主存，浪费资源。所以cache的出现，是为了缓解CPU和内存之间速度的不匹配问题（结构：cpu -&gt; cache -&gt; memory）。<br><br><br>出现的意义（局部性原理）：</p>
 <ul>
 <li>A. 时间局部性：如果某个数据被访问，那么在不久的将来它很可能被再次访问；</li>
-<li>B. 空间局部性：如果某个数据被访问，那么与它相邻的数据很快也可能被访问；<h2 id="MESI（缓存一致性）"><a href="#MESI（缓存一致性）" class="headerlink" title="MESI（缓存一致性）"></a>MESI（缓存一致性）</h2>cache line: cache line是cache与内存数据交换的最小单位，根据操作系统一般是32byte或64byte。在MESI协议中，状态可以是M、E、S、I，地址则是cache line中映射的内存地址，数据则是从内存中读取的数据。<br>| 状态        | 地址   |  数据  |<br>| ——–   | —–:  | :—-:  |<br>| modified     |0x00223000 |   5     |<a id="more"></a>
-<blockquote>
+<li>B. 空间局部性：如果某个数据被访问，那么与它相邻的数据很快也可能被访问；<h2 id="MESI（缓存一致性）"><a href="#MESI（缓存一致性）" class="headerlink" title="MESI（缓存一致性）"></a>MESI（缓存一致性）</h2>cache line: cache line是cache与内存数据交换的最小单位，根据操作系统一般是32byte或64byte。在MESI协议中，状态可以是M、E、S、I，地址则是cache line中映射的内存地址，数据则是从内存中读取的数据。<br>| 状态        | 地址   |  数据  |<br>| ——–   | —–:  | :—-:  |<br>| modified     |0x00223000 |   5     |<blockquote>
 <p>MESI协议中的状态</p>
 </blockquote>
 </li>
